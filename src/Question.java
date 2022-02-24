@@ -1,6 +1,6 @@
 public class Question {
 
-    //private boolean isCorrect;
+    private boolean isCorrect;
     private String question;
     private String answer;
     private String theme;
@@ -28,14 +28,14 @@ public class Question {
         this.answer = answer;
     }
 
-    /*public boolean getIfIsCorrect() {
+    public boolean getIfIsCorrect() {
         return isCorrect;
     }
 
     public boolean setIfIsCorrect(boolean correct) {
         isCorrect = correct;
         return correct;
-    }*/
+    }
 
     public String getQuestion() {
         return question;

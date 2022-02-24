@@ -12,38 +12,50 @@ public class Main {
     public static void main(String[] args) {
 
         HashMap<String, List<Question>> mapTopics = createMapTopics();
-        int countCorrectAnswers = 0;
-        int countTotalAnswers = 0;
 
-        while (!hasWon(countCorrectAnswers) && hasRemainingQuestions(mapTopics)) {
+        List<Player> players = createPlayers();
+        int currentPlayer = 0;
+
+
+        while (!someoneHasWon(players) && hasRemainingQuestions(mapTopics)) {
+
             String topic = askForTopic();
             List<Question> questionsOfTopic = selectTopic(topic, mapTopics);//pasar lista preguntas
-            boolean isCorrect = playQuestion(questionsOfTopic);
-            countCorrectAnswers = sumIfIsCorrect(isCorrect, countCorrectAnswers);
-            countTotalAnswers++;
-            //countTotalAnswers = sumIfIsIncorrect(isCorrect, countTotalAnswers);//suma les correct
+            playQuestion(questionsOfTopic, players, currentPlayer);
+            currentPlayer = nextPlayerTurn(players, currentPlayer);
+        }
+
+
+        printFinalGame(players);
+    }
+
+    private static int nextPlayerTurn(List<Player> players, int currentPlayer) {
+        currentPlayer = (currentPlayer + 1) % players.size();
+        return currentPlayer;
+    }
+
+
+    private static List<Player> createPlayers() {
+
+        List<Player> players = new ArrayList<>();
+
+        players.add(new Player("Juan"));
+        players.add(new Player("Pepe"));
+
+        return players;
+    }
+
+
+    private static void printFinalGame(List<Player> players) {
+        players = (ArrayList<Player>) players.stream()
+                .sorted(Comparator.comparing(Player::getPoints).reversed());
+        System.out.println("Ha ganado " + players.get(0).getName());
+
+        for (int i = 0; i < players.size(); i++) {
+            System.out.println((i + 1) + ". " + players.get(i).toString());
 
         }
-        printFinalGame(countCorrectAnswers, countTotalAnswers);
-    }
 
-    private static int sumIfIsIncorrect(boolean isCorrect, int countIncorrectAnswers) {
-        if (!isCorrect) countIncorrectAnswers++;
-        return countIncorrectAnswers;
-    }
-
-
-    private static int sumIfIsCorrect(boolean isCorrect, int countCorrectAnswers) {
-        if (isCorrect) countCorrectAnswers++;
-        return countCorrectAnswers;
-    }
-
-
-    private static void printFinalGame(int countCorrectAnswers, int countTotalAnswers) {
-        if (countCorrectAnswers >= MAX_POINTS_FOR_WIN) System.out.println("Has ganado");
-        else System.out.println("Has perdido");
-
-        System.out.println("Tu ratio de acierto es de: " + (countCorrectAnswers * 100 / (countTotalAnswers)) + "%");
     }
 
     private static boolean hasRemainingQuestions(HashMap<String, List<Question>> mapThemes) {
@@ -55,18 +67,17 @@ public class Main {
         return false;
     }
 
-    private static boolean playQuestion(List<Question> questionsOfTopic) {
-        boolean isCorrect = false;
+    private static void playQuestion(List<Question> questionsOfTopic, List<Player> players, int currentPlayer) {
 
         if (hasQuestion(questionsOfTopic)) {
             printQuestion(questionsOfTopic.get(0));
             String answer = giveAnswer();
-            isCorrect = isAnswerCorrect(answer, questionsOfTopic.get(0));
-            printResult(isCorrect, questionsOfTopic.get(0));
+            questionsOfTopic.get(0).setIfIsCorrect(isAnswerCorrect(answer, questionsOfTopic.get(0).getAnswer()));
+            printResult(questionsOfTopic.get(0));
+            players.get(currentPlayer).getAssignedQuestions().add(questionsOfTopic.get(0));
             questionsOfTopic.remove(0);
         }
 
-        return isCorrect;
     }
 
     private static boolean hasQuestion(List<Question> questionsOfTheme) {
@@ -79,9 +90,11 @@ public class Main {
     }
 
 
-    private static boolean hasWon(int countCorrectAnswer) {
+    private static boolean someoneHasWon(List<Player> players) {
 
-        return countCorrectAnswer >= MAX_POINTS_FOR_WIN;
+        return players.stream()
+                .mapToInt(Player::getPoints)
+                .sum() >= MAX_POINTS_FOR_WIN;
     }
 
 
@@ -120,14 +133,15 @@ public class Main {
 
     }
 
-    private static boolean isAnswerCorrect(String answer, Question question) {
+    private static boolean isAnswerCorrect(String answer, String answerQuestion) {
 
-        return answer.equalsIgnoreCase(question.getAnswer());
+        return answer.equalsIgnoreCase(answerQuestion);
 
     }
 
-    private static void printResult(boolean isCorrect, Question question) {
-        if (isCorrect) {
+    private static void printResult(Question question) {
+
+        if (question.getIfIsCorrect()) {
             System.out.println("Correcto");
         } else {
             System.out.println("A ver si estudiamos mas...");
@@ -137,8 +151,7 @@ public class Main {
 
     private static String giveAnswer() {
         Scanner sc = new Scanner(System.in);
-        String text = sc.nextLine();
-        return text;
+        return sc.nextLine();
     }
 
     private static void printQuestion(Question question) {
@@ -151,35 +164,30 @@ public class Main {
 
 
         switch (theme) {
-            case GEOGRAPY:
+            case GEOGRAPY -> {
                 questions.add(new Question("Donde nace el rio Ebro?:", "Fontibre", "Geografia"));
                 questions.add(new Question("Que rio pasa por París?:", "Sena", "Geografia"));
                 questions.add(new Question("Cual es la capital de Japón?:", "Tokio", "Geografia"));
                 questions.add(new Question("Que rio pasa por Londres?", "Tamesis", "Geografia"));
-                break;
-
-            case GENERAL_CULTUR:
+            }
+            case GENERAL_CULTUR -> {
                 questions.add(new Question("De que color es el caballo blanco de SAntiago?:", "Blanco", "Culturilla General"));
                 questions.add(new Question("¿Quién escribió La Odisea?", "Homero", "Culturilla General"));
                 questions.add(new Question("¿Qué tipo de animal es la ballena?", "Mamifero", "Culturilla General"));
                 questions.add(new Question("¿Qué cantidad de huesos en el cuerpo humano adulto?", "206", "Culturilla General"));
-
-                break;
-            case FUNNY:
+            }
+            case FUNNY -> {
                 questions.add(new Question("Cuantas caras tiene un dado?:", "6", "Diversion"));
                 questions.add(new Question("Cuantas caras tiene el cubo de rubick?:", "6", "Diversion"));
                 questions.add(new Question("¿Qué sube, pero nunca baja?:", "Edad", "Diversion"));
                 questions.add(new Question("¿Qué entra duro pero sale blando y suave?:", "Chicle", "Diversion"));
-                break;
-
-            case LITERATUR_AND_CINEMA:
+            }
+            case LITERATUR_AND_CINEMA -> {
                 questions.add(new Question("Quien escribió 100 años de soledad?:", "Garcia Marquez", "Literatura y cine"));
                 questions.add(new Question("Quien dirigió el film Indiana Jones?:", "Steven Spilberg", "Literatura y cine"));
                 questions.add(new Question("Quien escribió 100 años de soledad?:", "Garcia Marquez", "Literatura y cine"));
                 questions.add(new Question("Quien dirigió el film Indiana Jones?:", "Steven Spilberg", "Literatura y cine"));
-                break;
-
-
+            }
         }
 
         return questions;
