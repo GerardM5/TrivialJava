@@ -14,15 +14,15 @@ public class Main {
         HashMap<String, List<Question>> mapTopics = createMapTopics();
 
         List<Player> players = createPlayers();
-        int currentPlayer = 0;
+        int currentPlayer = -1;
 
 
         while (!someoneHasWon(players) && hasRemainingQuestions(mapTopics)) {
-
+            currentPlayer = nextPlayerTurn(players, currentPlayer);
             String topic = askForTopic();
             List<Question> questionsOfTopic = selectTopic(topic, mapTopics);//pasar lista preguntas
             playQuestion(questionsOfTopic, players, currentPlayer);
-            currentPlayer = nextPlayerTurn(players, currentPlayer);
+
         }
 
 
@@ -31,18 +31,37 @@ public class Main {
 
     private static int nextPlayerTurn(List<Player> players, int currentPlayer) {
         currentPlayer = (currentPlayer + 1) % players.size();
+        printTurnOfCurrentPlayer(players, currentPlayer);
         return currentPlayer;
+    }
+
+    private static void printTurnOfCurrentPlayer(List<Player> players, int currentPlayer) {
+        System.out.println("Turno de "+ players.get(currentPlayer).getName()+":");
     }
 
 
     private static List<Player> createPlayers() {
 
         List<Player> players = new ArrayList<>();
+        int manyPlayers = askHowManyPlayers();
+        for (int i =0;i<manyPlayers;i++){
+            players.add(new Player(askForName(i+1))   );
+        }
 
-        players.add(new Player("Juan"));
-        players.add(new Player("Pepe"));
 
         return players;
+    }
+
+    private static String askForName(int i) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Como te llamas jugador " + i);
+        return sc.next();
+    }
+
+    private static int askHowManyPlayers() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Cuantos jugadores van a participar?");
+        return sc.nextInt();
     }
 
 
@@ -94,7 +113,7 @@ public class Main {
 
         return players.stream()
                 .mapToInt(Player::getPoints)
-                .sum() >= MAX_POINTS_FOR_WIN;
+                .sum() >= MAX_POINTS_FOR_WIN || true==false;
     }
 
 

@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
@@ -10,6 +11,7 @@ public class Player {
     public Player(String name) {
         this.name = name;
         points = 0;
+        assignedQuestions = new ArrayList<>();
     }
 
     public int getPoints() {
